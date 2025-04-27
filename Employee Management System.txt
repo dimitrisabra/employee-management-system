@@ -1,0 +1,258 @@
+package Main;
+
+import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+class Employee {
+
+    int id;
+    String name;
+    String position;
+    double salary;
+    double performanceRating;
+    String departmentName;
+
+    public Employee(int id, String name, String position, double salary, String departmentName) {
+        this.id = id;
+        this.name = name;
+        this.position = position;
+        this.salary = salary;
+        this.performanceRating = 0.0;
+        this.departmentName = departmentName;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public double getSalary() {
+        return salary;
+    }
+
+    public String getDepartmentName() {
+         return departmentName;
+    }
+
+    public double getPerformanceRating() {
+        return performanceRating;
+    }
+
+    public void setPerformanceRating(double performanceRating) {
+        this.performanceRating = performanceRating;
+    }
+
+    @Override
+    public String toString() {
+        return "ID: " + id + "\n"
+                + "Name: " + name + "\n"
+                + "Position: " + position + "\n"
+                + "Salary: $" + salary + "\n"
+                + "Performance Rating: " + performanceRating + "\n"
+                + "Department: " + departmentName;
+    }
+}
+
+class Salary {
+
+    public static double calculateBonus(Employee employee) {
+        double rating = employee.getPerformanceRating();
+        double bonusPercentage = 0.0;
+
+        if (rating >= 4.1) {
+            bonusPercentage = 0.10;
+        } else if (rating >= 3.1) {
+            bonusPercentage = 0.07;
+        } else if (rating >= 2.1) {
+            bonusPercentage = 0.05;
+        } else if (rating >= 1.0) {
+            bonusPercentage = 0.03;
+        }
+
+        return employee.getSalary() * bonusPercentage;
+    }
+
+    public static double calculatePayroll(ArrayList<Employee> employees) {
+        double totalPayroll = 0.0;
+        for (Employee employee : employees) {
+            totalPayroll += employee.getSalary() + calculateBonus(employee);
+        }
+        return totalPayroll;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        ArrayList<Employee> employees = new ArrayList<>();
+
+        while (true) {
+            try {
+                System.out.println("\n--- Employee Management System ---");
+                System.out.println("1. Hire Employee");
+                System.out.println("2. Fire Employee");
+                System.out.println("3. Display Employees");
+                System.out.println("4. Calculate Payroll");
+                System.out.println("5. Update Employee Performance");
+                System.out.println("6. Exit");
+                System.out.print("Enter your choice: ");
+                int choice = scanner.nextInt();
+
+                switch (choice) {
+                    case 1:
+                        System.out.print("Enter Employee ID: ");
+                        int id = scanner.nextInt();
+                        scanner.nextLine();
+
+                        boolean idExists = employees.stream().anyMatch(emp -> emp.getId() == id);
+                        if (idExists) {
+                            System.out.println("ID already exists. Please enter a unique ID.");
+                            break;
+                        }
+
+                        String name = "";
+                        boolean validName = false;
+                        while (!validName) {
+                            try {
+                                System.out.print("Enter Employee Name: ");
+                                name = scanner.nextLine();
+                                if (name.matches("^[a-zA-Z\\s]+$")) {
+                                    validName = true;
+                                } else {
+                                    throw new IllegalArgumentException("Invalid name! Please enter only letters and spaces.");
+                                }
+                            } catch (IllegalArgumentException e) {
+                                System.out.println(e.getMessage());
+                            }
+                        }
+
+                        String position = "";
+                        boolean validPosition = false;
+                        while (!validPosition) {
+                            try {
+                                System.out.print("Enter Employee Position: ");
+                                position = scanner.nextLine();
+                                if (position.matches("^[a-zA-Z\\s]+$")) {
+                                    validPosition = true;
+                                } else {
+                                    throw new IllegalArgumentException("Invalid position! Please enter only letters and spaces.");
+                                }
+                            } catch (IllegalArgumentException e) {
+                                System.out.println(e.getMessage());
+                            }
+                        }
+
+                        String departmentName = "";
+                        boolean validDepartment = false;
+                        while (!validDepartment) {
+                            try {
+                                System.out.print("Enter Employee Department Name (HR/IT/Marketing): ");
+                                departmentName = scanner.nextLine();
+                                if (departmentName.equalsIgnoreCase("HR")
+                                        || departmentName.equalsIgnoreCase("IT")
+                                        || departmentName.equalsIgnoreCase("Marketing")) {
+                                    validDepartment = true;
+                                } else {
+                                    throw new IllegalArgumentException("Invalid department name! Please choose from HR, IT, or Marketing.");
+                                }
+                            } catch (IllegalArgumentException e) {
+                                System.out.println(e.getMessage());
+                            }
+                        }
+
+                        System.out.print("Enter Employee Salary: ");
+                        double salary = scanner.nextDouble();
+                        scanner.nextLine();
+
+                        Employee newEmployee = new Employee(id, name, position, salary, departmentName);
+                        employees.add(newEmployee);
+                        System.out.println(newEmployee.getName() + " has been hired in " + departmentName + " department.");
+                        break;
+
+                    case 2:
+                        System.out.print("Enter Employee ID to fire: ");
+                        int fireId = scanner.nextInt();
+                        Employee employeeToRemove = null;
+                        for (Employee emp : employees) {
+                            if (emp.getId() == fireId) {
+                                employeeToRemove = emp;
+                                break;
+                            }
+                        }
+
+                        if (employeeToRemove != null) {
+                            employees.remove(employeeToRemove);
+                            System.out.println(employeeToRemove.getName() + " has been fired.");
+                        } else {
+                            System.out.println("ID not found.");
+                        }
+                        break;
+
+                    case 3:
+                        if (employees.isEmpty()) {
+                            System.out.println("No employees found.");
+                        } else {
+                            for (Employee emp : employees) {
+                                System.out.println(emp);
+                                System.out.println("-------------------------");
+                            }
+                        }
+                        break;
+
+                    case 4:
+                        double totalPayroll = Salary.calculatePayroll(employees);
+                        System.out.println("Total Payroll: $" + totalPayroll);
+                        break;
+
+                    case 5:
+                        System.out.print("Enter Employee ID to update performance: ");
+                        int updateId = scanner.nextInt();
+                        Employee employeeToUpdate = null;
+                        for (Employee emp : employees) {
+                            if (emp.getId() == updateId) {
+                                employeeToUpdate = emp;
+                                break;
+                            }
+                        }
+
+                        if (employeeToUpdate != null) {
+                            System.out.print("Enter new performance rating (0.0 - 5.0): ");
+                            double rating = scanner.nextDouble();
+                            if (rating < 0.0 || rating > 5.0) {
+                                System.out.println("Invalid rating! Please enter a rating between 0.0 and 5.0.");
+                            } else {
+                                employeeToUpdate.setPerformanceRating(rating);
+                                System.out.println("Performance rating updated for " + employeeToUpdate.getName());
+                                System.out.println("Bonus: $" + Salary.calculateBonus(employeeToUpdate));
+                            }
+                        } else {
+                            System.out.println("Employee with ID " + updateId + " not found.");
+                        }
+                        break;
+
+                    case 6:
+                        System.out.println("Exiting Employee Management System.");
+                        scanner.close();
+                        System.exit(0);
+                        break;
+
+                    default:
+                        System.out.println("Invalid choice. Please try again.");
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter the correct type of value.");
+                scanner.nextLine();
+            } catch (Exception e) {
+                System.out.println("An unexpected error occurred: " + e.getMessage());
+            }
+        }
+    }
+}
